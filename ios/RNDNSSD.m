@@ -1,3 +1,5 @@
+#include <arpa/inet.h>
+
 #import "RNDNSSD.h"
 
 
@@ -82,9 +84,20 @@ RCT_EXPORT_METHOD(stopSearch)
            @"type": service.type,
            @"domain": service.domain,
            @"hostName": service.hostName,
+           @"ipAddr": [self IPAddressesFromData:service],
            @"port": @(service.port),
            @"txt": [self serviceTXT:service],
            };
+}
+
+-(NSString* )IPAddressesFromData:(NSNetService *)service {
+  for (NSData *address in [service addresses]) {
+    struct sockaddr_in *socketAddress = (struct sockaddr_in *) [address bytes];
+    //NSLog(@"Service name: %@ , ip: %s , port %i", [service name], inet_ntoa(socketAddress->sin_addr), [service port]);
+    NSString *retString = [NSString stringWithFormat:@"%s", inet_ntoa(socketAddress->sin_addr)];
+    return retString;
+  }
+  return @"Unknown";
 }
 
 - (NSDictionary <NSString *, id> *) serviceTXT: (NSNetService *) service
